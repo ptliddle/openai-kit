@@ -68,22 +68,22 @@ extension CreateCompletionRequest {
         let logitBias: [String: Int]
         let user: String?
             
-        enum CodingKeys: CodingKey {
+        enum CodingKeys: String, CodingKey {
             case model
             case prompt
             case suffix
-            case maxTokens
+            case maxTokens = "max_tokens"
             case temperature
-            case topP
+            case topP = "top_p"
             case n
             case stream
             case logprobs
             case echo
             case stop
-            case presencePenalty
-            case frequencyPenalty
-            case bestOf
-            case logitBias
+            case presencePenalty = "presence_penalty"
+            case frequencyPenalty = "frequency_penalty"
+            case bestOf = "best_of"
+            case logitBias = "logit_bias"
             case user
         }
         

@@ -2,6 +2,43 @@ import AsyncHTTPClient
 import NIOHTTP1
 import Foundation
 
+
+public enum ResponseFormat {
+    case jsonObject
+    case jsonSchema(JSONSchema)
+}
+
+extension ResponseFormat: Encodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case type
+        case jsonSchema = "json_schema"
+    }
+    
+    private enum SchemaCodingKeys: CodingKey {
+        case strict
+        case schema
+        case name
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        // Encode the type property inside the parent container
+        switch self  {
+        case .jsonObject:
+            try container.encode("json_object", forKey: .type)
+        case .jsonSchema(let schema):
+            try container.encode("json_schema", forKey: .type)
+            var schemaContainer = container.nestedContainer(keyedBy: SchemaCodingKeys.self, forKey: .jsonSchema)
+            try schemaContainer.encode("MyName", forKey: .name)
+            try schemaContainer.encode(true, forKey: .strict)
+            try schemaContainer.encode(schema, forKey: .schema)
+        }
+        
+    }
+}
+
 struct CreateChatRequest: Request {
     let method: HTTPMethod = .POST
     let path = "/v1/chat/completions"
@@ -19,7 +56,8 @@ struct CreateChatRequest: Request {
         presencePenalty: Double,
         frequencyPenalty: Double,
         logitBias: [String: Int],
-        user: String?
+        user: String?,
+        responseFormat: ResponseFormat?
     ) throws {
         
         let body = Body(
@@ -34,7 +72,8 @@ struct CreateChatRequest: Request {
             presencePenalty: presencePenalty,
             frequencyPenalty: frequencyPenalty,
             logitBias: logitBias,
-            user: user
+            user: user,
+            responseFormat: responseFormat
         )
                 
         self.body = try Self.encoder.encode(body)
@@ -55,20 +94,22 @@ extension CreateChatRequest {
         let frequencyPenalty: Double
         let logitBias: [String: Int]
         let user: String?
+        let responseFormat: ResponseFormat?
             
-        enum CodingKeys: CodingKey {
+        enum CodingKeys: String, CodingKey {
             case model
             case messages
             case temperature
-            case topP
+            case topP = "top_p"
             case n
             case stream
             case stop
-            case maxTokens
-            case presencePenalty
-            case frequencyPenalty
-            case logitBias
+            case maxTokens = "max_tokens"
+            case presencePenalty = "presence_penalty"
+            case frequencyPenalty = "frequency_penalty"
+            case logitBias  = "logit_bias"
             case user
+            case responseFormat = "response_format"
         }
         
         func encode(to encoder: Encoder) throws {
@@ -100,6 +141,8 @@ extension CreateChatRequest {
             }
             
             try container.encodeIfPresent(user, forKey: .user)
+            
+            try container.encodeIfPresent(responseFormat, forKey: .responseFormat)
         }
     }
 }

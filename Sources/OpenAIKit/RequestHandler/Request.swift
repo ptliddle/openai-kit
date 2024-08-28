@@ -33,7 +33,7 @@ extension Request {
 extension JSONEncoder {
     static var requestEncoder: JSONEncoder {
         let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
+//        encoder.keyEncodingStrategy = .convertToSnakeCase
         return encoder
     }
 }
