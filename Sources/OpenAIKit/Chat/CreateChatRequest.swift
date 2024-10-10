@@ -1,7 +1,7 @@
 import AsyncHTTPClient
 import NIOHTTP1
 import Foundation
-
+import SwiftyJsonSchema
 
 public enum ResponseFormat {
     case jsonObject

@@ -80,6 +80,15 @@
         "revision" : "c0d9a144cfaec8d3d596aadde3039286a266c15c",
         "version" : "1.15.0"
       }
+    },
+    {
+      "identity" : "swifty-json-schema",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ptliddle/swifty-json-schema.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "595618b1b4b87bf500c980b26886ba1c5b7bd7d4"
+      }
     }
   ],
   "version" : 2
