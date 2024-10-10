@@ -1,3 +1,5 @@
+#if os(Linux)
+
 import AsyncHTTPClient
 import NIO
 import NIOHTTP1
@@ -99,3 +101,5 @@ struct NIORequestHandler: RequestHandler {
     }
 
 }
+#endif
+

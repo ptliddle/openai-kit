@@ -1,4 +1,7 @@
+#if os(Linux)
 import NIOHTTP1
+#endif
+
 import Foundation
 
 struct DeleteFileRequest: Request {

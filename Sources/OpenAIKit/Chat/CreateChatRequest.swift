@@ -1,7 +1,12 @@
-import AsyncHTTPClient
+
+#if os(Linux)
 import NIOHTTP1
+import AsyncHTTPClient
+#endif
+
 import Foundation
 import SwiftyJsonSchema
+
 
 public enum ResponseFormat {
     case jsonObject

@@ -1,6 +1,9 @@
+#if os(Linux)
 import NIOHTTP1
-import Foundation
 import AsyncHTTPClient
+#endif
+
+import Foundation
 
 struct UploadFileRequest: Request {
     let method: HTTPMethod = .POST

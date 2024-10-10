@@ -5,9 +5,12 @@
 //  Created by Dylan Shine on 3/19/23.
 //
 
+#if os(Linux)
 import NIOHTTP1
-import Foundation
 import AsyncHTTPClient
+#endif
+
+import Foundation
 
 struct CreateTranscriptionRequest: Request {
     let method: HTTPMethod = .POST

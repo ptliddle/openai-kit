@@ -1,6 +1,11 @@
-import AsyncHTTPClient
+
+#if canImport(NIOHTTP1)
 import NIOHTTP1
+import AsyncHTTPClient
+#endif
+
 import Foundation
+import SwiftyJsonSchema
 
 protocol Request {
     var method: HTTPMethod { get }

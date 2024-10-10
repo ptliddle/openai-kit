@@ -1,5 +1,8 @@
-import AsyncHTTPClient
+#if os(Linux)
 import NIOHTTP1
+import AsyncHTTPClient
+#endif
+
 import Foundation
 
 struct CreateImageRequest: Request {

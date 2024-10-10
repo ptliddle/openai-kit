@@ -145,7 +145,8 @@ final class MessageTests: XCTestCase {
             presencePenalty: 0.0,
             frequencyPenalty: 0.0,
             logitBias: [:],
-            user: nil
+            user: nil,
+            responseFormat: nil
         )
         
         print(request.body)

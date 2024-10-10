@@ -1,11 +1,16 @@
 import XCTest
+
+#if os(Linux)
 import NIOHTTP1
 import NIOPosix
 import AsyncHTTPClient
+#endif
+
 @testable import OpenAIKit
 
 final class RequestHandlerTests: XCTestCase {
     
+#if os(Linux)
     private var httpClient: HTTPClient!
     
     override func setUp() {
@@ -22,6 +27,22 @@ final class RequestHandlerTests: XCTestCase {
     ) -> RequestHandler {
         return NIORequestHandler(httpClient: httpClient, configuration: configuration)
     }
+#else
+    var urlSession: URLSession!
+    
+    override func setUp() {
+        urlSession = URLSession(configuration: .default)
+    }
+    
+    private func requestHandler(configuration: Configuration) -> RequestHandler {
+        return URLSessionRequestHandler(session: urlSession, configuration: configuration)
+    }
+    
+    override func tearDownWithError() throws {
+        urlSession = nil
+    }
+#endif
+    
     
     func test_generateURL_requestWithCustomValues() throws {
         let configuration = Configuration(apiKey: "TEST")

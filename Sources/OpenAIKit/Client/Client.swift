@@ -1,7 +1,12 @@
-import AsyncHTTPClient
-import NIO
+
+#if os(Linux)
 import NIOHTTP1
+import NIO
+import AsyncHTTPClient
+#endif
+
 import Foundation
+import SwiftyJsonSchema
 
 public struct Client {
     
@@ -27,6 +32,7 @@ public struct Client {
         self.moderations = ModerationProvider(requestHandler: requestHandler)
     }
     
+#if os(Linux) 
     public init(
         httpClient: HTTPClient,
         configuration: Configuration
@@ -37,6 +43,7 @@ public struct Client {
         )
         self.init(requestHandler: requestHandler)
     }
+#endif
     
 #if !os(Linux)
     public init(

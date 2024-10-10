@@ -27,7 +27,7 @@ let package = Package(
             name: "OpenAIKit",
             dependencies: [
                 .product(name: "SwiftyJsonSchema", package: "swifty-json-schema"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(platforms: [.linux, .android, .wasi, .windows])),
             ]
         ),
         .testTarget(

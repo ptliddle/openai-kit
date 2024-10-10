@@ -1,4 +1,7 @@
+
+#if os(Linux)
 import NIOHTTP1
+#endif
 
 public struct Configuration {
     public let apiKey: String

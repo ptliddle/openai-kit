@@ -1,13 +1,17 @@
 import XCTest
+
+#if os(Linux)
 import NIOPosix
 import AsyncHTTPClient
+#endif
+
 @testable import OpenAIKit
 
 final class ClientTests: XCTestCase {
     
-    private var httpClient: HTTPClient!
+#if os(Linux)
     private var client: Client!
-    
+    private var httpClient: HTTPClient!
     override func setUp() {
         
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -25,6 +29,20 @@ final class ClientTests: XCTestCase {
     override func tearDownWithError() throws {
         try httpClient.syncShutdown()
     }
+#else
+    private var client: Client!
+    
+    override func setUp() {
+        let configuration = Configuration(apiKey: "YOUR-API-KEY")
+        let urlSession = URLSession(configuration: .default)
+        client = Client(session: urlSession, configuration: configuration)
+    }
+    
+    override func tearDownWithError() throws {
+        client = nil
+    }
+    
+#endif
     
     func test_error() async throws {
         do {
