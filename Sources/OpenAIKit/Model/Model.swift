@@ -288,6 +288,11 @@ public protocol ModelID {
 //  ]
 //}
 extension Model {
+    
+    public struct Other: ModelID {
+        public var id: String
+    }
+    
     public enum GPT4: String, ModelID {
         case o1 = "o1-2024-12-17"
         case o1Pro = "o1-pro"
