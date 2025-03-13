@@ -19,6 +19,7 @@ extension File {
         case answers
         case search
         case classifications
+        case userData = "user_data"
     }
 }
 
