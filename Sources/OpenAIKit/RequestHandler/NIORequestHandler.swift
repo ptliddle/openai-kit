@@ -1,4 +1,4 @@
-#if os(Linux)
+#if os(Linux) || USE_NIO
 
 import AsyncHTTPClient
 import NIO
