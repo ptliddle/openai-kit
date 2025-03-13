@@ -16,6 +16,7 @@ struct URLSessionRequestHandler: RequestHandler {
         self.decoder = decoder
     }
     
+    @MainActor
     func perform<T>(request: Request) async throws -> T where T : Decodable {
         let urlRequest = try makeUrlRequest(request: request)
         let (data, _) = try await session.data(for: urlRequest)

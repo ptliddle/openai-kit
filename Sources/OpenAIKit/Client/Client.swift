@@ -32,7 +32,7 @@ public struct Client {
         self.moderations = ModerationProvider(requestHandler: requestHandler)
     }
     
-#if os(Linux) 
+#if os(Linux) || USE_NIO
     public init(
         httpClient: HTTPClient,
         configuration: Configuration
@@ -45,7 +45,7 @@ public struct Client {
     }
 #endif
     
-#if !os(Linux)
+#if !os(Linux) && !USE_NIO
     public init(
         session: URLSession,
         configuration: Configuration
