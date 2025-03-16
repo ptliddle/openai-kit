@@ -122,57 +122,8 @@ extension CreateChatRequest {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(model, forKey: .model)
             
-            struct TempMessage: Codable {
-                let content: [String]
-            }
-            
             if !messages.isEmpty {
-                if messages.count > 1 {
-                    
-                    let gr = Dictionary<String, [Chat.Message]>.init(grouping: messages) { element in
-                        switch element {
-                        case .assistant(_):
-                            return "assistant"
-                        case .system(_):
-                            return "system"
-                        case .user(_):
-                            return "user"
-                        }
-                    }.mapValues({
-                        TempMessage(content: $0.map({ $0.content }))
-                    })
-                    
-              
-                    
-//                    let groupedMessages = messages.reduce([String: [MessageContent]](), { partialResult, message in
-//                        switch message {
-//                        case .assistant(let content):
-//                            partialResult["assistant"].append(.string(content))
-//                        case .system(let content):
-//                            partialResult["system", default: [MessageContent]].append(content)
-//                        case .user(let content):
-//                            partialResult["user", default: [MessageContent]].append(content)
-//                        }
-//                    })
-                    
-                    print(gr)
-                    
-                    try container.encode([gr], forKey: .input)
-                    
-//                    gr.keys.forEach { key in
-//                        let values = gr[key]
-//                        values?.forEach({ message in
-//                            
-//                            let subcont = container.nestedContainer(keyedBy: Chat.Message.CodingKeys.self, forKey: .messages)
-//                            
-//                            try subcont.encode(message.content, forKey: \.content)
-//                        })
-//                    }
-                    
-                }
-                else {
-                    try container.encode(messages, forKey: .messages)
-                }
+                try container.encode(messages, forKey: .messages)
             }
 
             try container.encode(temperature, forKey: .temperature)

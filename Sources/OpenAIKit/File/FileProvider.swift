@@ -34,7 +34,7 @@ public struct FileProvider {
      */
     public func upload(
         file: Data,
-        fileName: String = "data.jsonl",
+        fileName: String,
         purpose: File.Purpose
     ) async throws -> File {
         

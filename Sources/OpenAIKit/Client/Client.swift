@@ -19,6 +19,7 @@ public struct Client {
     public let images: ImageProvider
     public let models: ModelProvider
     public let moderations: ModerationProvider
+    public let responses: ResponseProvider
     
     init(requestHandler: RequestHandler) {
         self.audio = AudioProvider(requestHandler: requestHandler)
@@ -30,6 +31,7 @@ public struct Client {
         self.embeddings = EmbeddingProvider(requestHandler: requestHandler)
         self.files = FileProvider(requestHandler: requestHandler)
         self.moderations = ModerationProvider(requestHandler: requestHandler)
+        self.responses = ResponseProvider(requestHandler: requestHandler)
     }
     
 #if os(Linux) || USE_NIO
