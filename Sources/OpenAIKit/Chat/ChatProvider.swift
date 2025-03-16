@@ -1,3 +1,4 @@
+
 public struct ChatProvider {
     
     private let requestHandler: RequestHandler
@@ -26,7 +27,7 @@ public struct ChatProvider {
         frequencyPenalty: Double = 0.0,
         logitBias: [String : Int] = [:],
         user: String? = nil,
-        responseFormat: ResponseFormat? = nil
+        responseFormat: CreateChatRequest.ResponseFormat? = nil
     ) async throws -> Chat {
         
         let request = try CreateChatRequest(
@@ -46,7 +47,6 @@ public struct ChatProvider {
         )
     
         return try await requestHandler.perform(request: request)
-
     }
     
     /**
@@ -74,7 +74,7 @@ public struct ChatProvider {
         frequencyPenalty: Double = 0.0,
         logitBias: [String : Int] = [:],
         user: String? = nil,
-        responseFormat: ResponseFormat? = nil
+        responseFormat: CreateChatRequest.ResponseFormat? = nil
     ) async throws -> AsyncThrowingStream<ChatStream, Error> {
         
         let request = try CreateChatRequest(

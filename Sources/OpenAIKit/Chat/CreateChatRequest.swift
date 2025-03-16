@@ -8,44 +8,42 @@ import Foundation
 import SwiftyJsonSchema
 
 
-public enum ResponseFormat {
-    case jsonObject
-    case jsonSchema(JSONSchema)
-}
-
-extension ResponseFormat: Encodable {
+public struct CreateChatRequest: Request {
     
-    enum CodingKeys: String, CodingKey {
-        case type
-        case jsonSchema = "json_schema"
-    }
-    
-    private enum SchemaCodingKeys: CodingKey {
-        case strict
-        case schema
-        case name
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+    public enum ResponseFormat: Encodable {
+        case jsonObject
+        case jsonSchema(JSONSchema, String?)
         
-        // Encode the type property inside the parent container
-        switch self  {
-        case .jsonObject:
-            try container.encode("json_object", forKey: .type)
-        case .jsonSchema(let schema):
-            try container.encode("json_schema", forKey: .type)
-            var schemaContainer = container.nestedContainer(keyedBy: SchemaCodingKeys.self, forKey: .jsonSchema)
-            try schemaContainer.encode("MyName", forKey: .name)
-            try schemaContainer.encode(true, forKey: .strict)
-            try schemaContainer.encode(schema, forKey: .schema)
+        enum CodingKeys: String, CodingKey {
+            case type
+            case jsonSchema = "json_schema"
         }
         
-    }
-}
+        private enum SchemaCodingKeys: CodingKey {
+            case strict
+            case schema
+            case name
+        }
 
-struct CreateChatRequest: Request {
-    let method: HTTPMethod = .POST
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            // Encode the type property inside the parent container
+            switch self  {
+            case .jsonObject:
+                try container.encode("json_object", forKey: .type)
+            case .jsonSchema(let (schema, name)):
+                try container.encode("json_schema", forKey: .type)
+                var schemaContainer = container.nestedContainer(keyedBy: SchemaCodingKeys.self, forKey: .jsonSchema)
+                try schemaContainer.encode(name ?? "MyName", forKey: .name)
+                try schemaContainer.encode(true, forKey: .strict)
+                try schemaContainer.encode(schema, forKey: .schema)
+            }
+            
+        }
+    }
+    
+    let method: HTTPMethod = .POST 
     let path = "/v1/chat/completions"
     let body: Data?
     
@@ -62,7 +60,7 @@ struct CreateChatRequest: Request {
         frequencyPenalty: Double,
         logitBias: [String: Int],
         user: String?,
-        responseFormat: ResponseFormat?
+        responseFormat: CreateChatRequest.ResponseFormat?
     ) throws {
         
         let body = Body(
@@ -99,7 +97,7 @@ extension CreateChatRequest {
         let frequencyPenalty: Double
         let logitBias: [String: Int]
         let user: String?
-        let responseFormat: ResponseFormat?
+        let responseFormat: CreateChatRequest.ResponseFormat?
             
         enum CodingKeys: String, CodingKey {
             case model
@@ -122,57 +120,8 @@ extension CreateChatRequest {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(model, forKey: .model)
             
-            struct TempMessage: Codable {
-                let content: [String]
-            }
-            
             if !messages.isEmpty {
-                if messages.count > 1 {
-                    
-                    let gr = Dictionary<String, [Chat.Message]>.init(grouping: messages) { element in
-                        switch element {
-                        case .assistant(_):
-                            return "assistant"
-                        case .system(_):
-                            return "system"
-                        case .user(_):
-                            return "user"
-                        }
-                    }.mapValues({
-                        TempMessage(content: $0.map({ $0.content }))
-                    })
-                    
-              
-                    
-//                    let groupedMessages = messages.reduce([String: [MessageContent]](), { partialResult, message in
-//                        switch message {
-//                        case .assistant(let content):
-//                            partialResult["assistant"].append(.string(content))
-//                        case .system(let content):
-//                            partialResult["system", default: [MessageContent]].append(content)
-//                        case .user(let content):
-//                            partialResult["user", default: [MessageContent]].append(content)
-//                        }
-//                    })
-                    
-                    print(gr)
-                    
-                    try container.encode([gr], forKey: .input)
-                    
-//                    gr.keys.forEach { key in
-//                        let values = gr[key]
-//                        values?.forEach({ message in
-//                            
-//                            let subcont = container.nestedContainer(keyedBy: Chat.Message.CodingKeys.self, forKey: .messages)
-//                            
-//                            try subcont.encode(message.content, forKey: \.content)
-//                        })
-//                    }
-                    
-                }
-                else {
-                    try container.encode(messages, forKey: .messages)
-                }
+                try container.encode(messages, forKey: .messages)
             }
 
             try container.encode(temperature, forKey: .temperature)
@@ -198,6 +147,7 @@ extension CreateChatRequest {
             try container.encodeIfPresent(user, forKey: .user)
             
             try container.encodeIfPresent(responseFormat, forKey: .responseFormat)
+//            try container.encode(responseFormat, forKey: .responseFormat)
         }
     }
 }
