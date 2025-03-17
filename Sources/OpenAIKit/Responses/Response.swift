@@ -4,15 +4,64 @@ import Foundation
  Represents a response from the OpenAI Responses API.
  */
 public struct Response {
+    
+    public struct Usage: Codable {
+        
+        public struct Details: Codable {
+            var cachedTokens: Int? = 0
+            var reasoningTokens: Int? = 0
+        }
+        
+        public var inputTokens: Int = 0
+        
+        public var inputTokensDetails: Details
+        
+        public var outputTokens: Int = 0
+        
+        public var outputTokensDetails: Details
+        
+        public var totalTokens: Int = 0
+    }
+    
     public let id: String
     public let object: String
     public let createdAt: Date
     public let status: String
+    public let error: String?
+    public let incompleteDetails: String?
+    public let instructions: String?
+    public let maxOutputTokens: Int?
     public let model: String
-    public let input: [Message]
     public let output: [Message]
-    public let usage: Usage
+    public let parallelToolCalls: Bool
+    public let previousResponseId: String?
+    public let reasoning: Reasoning
+    public let store: Bool
+    public let temperature: Double
+    public let text: TextFormat
+    public let toolChoice: String
+    public let tools: [Tool]
+    public let topP: Double
+    public let truncation: String
+    public let usage: Self.Usage
+    public let user: String?
+    public let metadata: [String: String]
+    
+    public struct Reasoning: Codable {
+        public let effort: String?
+        public let summary: String?
+    }
+    
+    public struct TextFormat: Codable {
+        public let format: Format
+        
+        public struct Format: Codable {
+            public let type: String
+        }
+    }
 }
+
+
 
 extension Response: Codable {}
 

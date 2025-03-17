@@ -25,6 +25,7 @@ struct URLSessionRequestHandler: RequestHandler {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
+//            #error("It's encoding 'schema' as 'json_schema' and the new one needs just schema")
             throw try decoder.decode(APIErrorResponse.self, from: data)
         }
     }

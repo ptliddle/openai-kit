@@ -8,44 +8,42 @@ import Foundation
 import SwiftyJsonSchema
 
 
-public enum ResponseFormat {
-    case jsonObject
-    case jsonSchema(JSONSchema)
-}
-
-extension ResponseFormat: Encodable {
+public struct CreateChatRequest: Request {
     
-    enum CodingKeys: String, CodingKey {
-        case type
-        case jsonSchema = "json_schema"
-    }
-    
-    private enum SchemaCodingKeys: CodingKey {
-        case strict
-        case schema
-        case name
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+    public enum ResponseFormat: Encodable {
+        case jsonObject
+        case jsonSchema(JSONSchema, String?)
         
-        // Encode the type property inside the parent container
-        switch self  {
-        case .jsonObject:
-            try container.encode("json_object", forKey: .type)
-        case .jsonSchema(let schema):
-            try container.encode("json_schema", forKey: .type)
-            var schemaContainer = container.nestedContainer(keyedBy: SchemaCodingKeys.self, forKey: .jsonSchema)
-            try schemaContainer.encode("MyName", forKey: .name)
-            try schemaContainer.encode(true, forKey: .strict)
-            try schemaContainer.encode(schema, forKey: .schema)
+        enum CodingKeys: String, CodingKey {
+            case type
+            case jsonSchema = "json_schema"
         }
         
-    }
-}
+        private enum SchemaCodingKeys: CodingKey {
+            case strict
+            case schema
+            case name
+        }
 
-struct CreateChatRequest: Request {
-    let method: HTTPMethod = .POST
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            // Encode the type property inside the parent container
+            switch self  {
+            case .jsonObject:
+                try container.encode("json_object", forKey: .type)
+            case .jsonSchema(let (schema, name)):
+                try container.encode("json_schema", forKey: .type)
+                var schemaContainer = container.nestedContainer(keyedBy: SchemaCodingKeys.self, forKey: .jsonSchema)
+                try schemaContainer.encode(name ?? "MyName", forKey: .name)
+                try schemaContainer.encode(true, forKey: .strict)
+                try schemaContainer.encode(schema, forKey: .schema)
+            }
+            
+        }
+    }
+    
+    let method: HTTPMethod = .POST 
     let path = "/v1/chat/completions"
     let body: Data?
     
@@ -62,7 +60,7 @@ struct CreateChatRequest: Request {
         frequencyPenalty: Double,
         logitBias: [String: Int],
         user: String?,
-        responseFormat: ResponseFormat?
+        responseFormat: CreateChatRequest.ResponseFormat?
     ) throws {
         
         let body = Body(
@@ -99,7 +97,7 @@ extension CreateChatRequest {
         let frequencyPenalty: Double
         let logitBias: [String: Int]
         let user: String?
-        let responseFormat: ResponseFormat?
+        let responseFormat: CreateChatRequest.ResponseFormat?
             
         enum CodingKeys: String, CodingKey {
             case model
@@ -149,6 +147,7 @@ extension CreateChatRequest {
             try container.encodeIfPresent(user, forKey: .user)
             
             try container.encodeIfPresent(responseFormat, forKey: .responseFormat)
+//            try container.encode(responseFormat, forKey: .responseFormat)
         }
     }
 }

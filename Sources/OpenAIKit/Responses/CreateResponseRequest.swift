@@ -1,7 +1,50 @@
 import Foundation
+import SwiftyJsonSchema
 
-struct CreateResponseRequest: Request {
-
+public struct CreateResponseRequest: Request {
+    
+    public enum ResponseFormat: Encodable {
+        case text
+        case jsonObject
+        case jsonSchema(JSONSchema, String)
+        
+        enum CodingKeys: String, CodingKey {
+            case type
+            case name
+            case strict
+            case schema
+        }
+        
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            // Encode the type property inside the parent container
+            switch self  {
+            case .text:
+                try container.encode("text", forKey: .type)
+            case .jsonObject:
+                try container.encode("json_object", forKey: .type)
+            case .jsonSchema(let (schema, name)):
+                try container.encode("json_schema", forKey: .type)
+                try container.encode(name, forKey: .name)
+                try container.encode(true, forKey: .strict)
+                try container.encode(schema, forKey: .schema)
+            }
+            
+        }
+        
+//        init(from: CreateChatRequest.ResponseFormat?) {
+//            switch from {
+//            case .jsonObject:
+//                self = .jsonObject
+//            case let .jsonSchema(schema, name?):
+//                self = .jsonSchema(schema, name)
+//            default:
+//                self = .text
+//            }
+//        }
+    }
+    
     
     var method: HTTPMethod = .POST
     var path: String { "/v1/responses" }
@@ -16,6 +59,7 @@ struct CreateResponseRequest: Request {
         previousResponseId: String? = nil,
         maxTokens: Int? = nil,
         temperature: Double? = nil,
+        responseFormat: ResponseFormat? = nil,
         metadata: [String: String]? = nil,
         topP: Double? = nil,
         tools: [Tool]? = nil,
@@ -32,6 +76,7 @@ struct CreateResponseRequest: Request {
             previousResponseId: previousResponseId,
             maxTokens: maxTokens,
             temperature: temperature,
+            responseFormat: responseFormat,
             metadata: metadata,
             topP: topP,
             tools: tools,
@@ -45,6 +90,7 @@ struct CreateResponseRequest: Request {
 
 
 extension CreateResponseRequest {
+    
     struct Body: Encodable {
         
         let model: String
@@ -54,6 +100,7 @@ extension CreateResponseRequest {
         let previousResponseId: String?
         let maxTokens: Int?
         let temperature: Double?
+        let responseFormat: CreateResponseRequest.ResponseFormat?
         let metadata: [String: String]?
         let parallelToolCalls: Bool = true
         let store: Bool = true
@@ -67,7 +114,7 @@ extension CreateResponseRequest {
             case include
             case instructions
             case previousResponseId = "previous_response_id"
-            
+            case text
             case temperature
             case topP = "top_p"
             case n
@@ -77,6 +124,11 @@ extension CreateResponseRequest {
             case user
         }
         
+        
+        struct Text: Encodable {
+            var format: ResponseFormat?
+        }
+        
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(model, forKey: .model)
@@ -84,8 +136,17 @@ extension CreateResponseRequest {
             try container.encode(input, forKey: .input)
             
             try container.encodeIfPresent(include, forKey: .include)
+            
+            try container.encodeIfPresent(instructions, forKey: .instructions)
+            
+            try container.encodeIfPresent(previousResponseId, forKey: .previousResponseId)
 
             try container.encode(temperature, forKey: .temperature)
+            
+            if let responseFormat = responseFormat {
+                try container.encode(Text(format: responseFormat), forKey: .text)
+            }
+            
             try container.encode(topP, forKey: .topP)
 
             if let maxTokens {
