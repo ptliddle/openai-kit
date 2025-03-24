@@ -6,46 +6,7 @@ public struct ResponseProvider {
     init(requestHandler: RequestHandler) {
         self.requestHandler = requestHandler
     }
-    
-    /**
-     Create a response
-     POST
-      
-     https://api.openai.com/v1/responses
-     
-     Creates a response for the provided input and parameters
-     */
-    public func create(
-        model: ModelID,
-        input: String,
-        include: [String]? = nil,
-        instructions: String? = nil,
-        previousResponseId: String? = nil,
-        temperature: Double? = nil,
-        topP: Double? = nil,
-        maxTokens: Int? = nil,
-        metadata: [String: String]? = nil,
-        tools: [Tool]? = nil,
-        user: String? = nil
-    ) async throws -> Response {
-        let request = CreateResponseRequest(
-            model: model.id,
-            input: .string(input),
-            include: include,
-            instructions: instructions,
-            previousResponseId: previousResponseId,
-            maxTokens: maxTokens,
-            temperature: temperature,
-            metadata: metadata,
-            topP: topP,
-            tools: tools,
-            user: user,
-            method: .POST
-        )
-        
-        return try await requestHandler.perform(request: request)
-    }
-    
+
     /**
      Create a response with structured messages
      POST
@@ -65,6 +26,7 @@ public struct ResponseProvider {
         topP: Double? = nil,
         maxTokens: Int? = nil,
         metadata: [String: String]? = nil,
+        store: Bool = true,
         tools: [Tool]? = nil,
         user: String? = nil
     ) async throws -> Response {
@@ -78,6 +40,7 @@ public struct ResponseProvider {
             temperature: temperature,
             responseFormat: responseFormat, //CreateResponseRequest.ResponseFormat(from: responseFormat),
             metadata: metadata,
+            store: store,
             topP: topP,
             tools: tools,
             user: user,

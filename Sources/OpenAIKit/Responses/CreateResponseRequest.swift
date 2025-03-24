@@ -32,17 +32,6 @@ public struct CreateResponseRequest: Request {
             }
             
         }
-        
-//        init(from: CreateChatRequest.ResponseFormat?) {
-//            switch from {
-//            case .jsonObject:
-//                self = .jsonObject
-//            case let .jsonSchema(schema, name?):
-//                self = .jsonSchema(schema, name)
-//            default:
-//                self = .text
-//            }
-//        }
     }
     
     
@@ -61,6 +50,7 @@ public struct CreateResponseRequest: Request {
         temperature: Double? = nil,
         responseFormat: ResponseFormat? = nil,
         metadata: [String: String]? = nil,
+        store: Bool = true,
         topP: Double? = nil,
         tools: [Tool]? = nil,
         user: String? = nil,
@@ -78,6 +68,7 @@ public struct CreateResponseRequest: Request {
             temperature: temperature,
             responseFormat: responseFormat,
             metadata: metadata,
+            store: store,
             topP: topP,
             tools: tools,
             user: user
@@ -103,7 +94,7 @@ extension CreateResponseRequest {
         let responseFormat: CreateResponseRequest.ResponseFormat?
         let metadata: [String: String]?
         let parallelToolCalls: Bool = true
-        let store: Bool = true
+        let store: Bool
         let topP: Double?
         let tools: [Tool]?
         let user: String?
@@ -120,6 +111,7 @@ extension CreateResponseRequest {
             case n
             case stream
             case stop
+            case store
             case maxTokens = "max_output_tokens"
             case user
         }
@@ -140,6 +132,8 @@ extension CreateResponseRequest {
             try container.encodeIfPresent(instructions, forKey: .instructions)
             
             try container.encodeIfPresent(previousResponseId, forKey: .previousResponseId)
+            
+            try container.encode(store, forKey: .store)
 
             try container.encode(temperature, forKey: .temperature)
             
