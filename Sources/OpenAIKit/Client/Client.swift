@@ -34,6 +34,10 @@ public struct Client {
         self.responses = ResponseProvider(requestHandler: requestHandler)
     }
     
+    public init(delegatedHandler: DelegatedRequestHandler) {
+        self.init(requestHandler: DelegatedRequestWrapper(handler: delegatedHandler))
+    }
+    
 #if os(Linux) || USE_NIO
     public init(
         httpClient: HTTPClient,
