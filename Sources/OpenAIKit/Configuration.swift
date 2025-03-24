@@ -8,7 +8,7 @@ public struct Configuration {
     public let organization: String?
     public let api: API?
     
-    var headers: HTTPHeaders {
+    public var headers: HTTPHeaders {
         var headers = HTTPHeaders()
         headers.add(name: "Authorization", value: "Bearer \(apiKey)")
 
