@@ -38,7 +38,7 @@ public struct Client {
         self.init(requestHandler: DelegatedRequestWrapper(handler: delegatedHandler))
     }
     
-#if os(Linux) || USE_NIO
+#if os(Linux)
     public init(
         httpClient: HTTPClient,
         configuration: Configuration
@@ -51,7 +51,7 @@ public struct Client {
     }
 #endif
     
-#if !os(Linux) && !USE_NIO
+#if !os(Linux)
     public init(
         session: URLSession,
         configuration: Configuration
