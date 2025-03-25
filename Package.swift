@@ -19,6 +19,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.13.0"),
         .package(url: "https://github.com/ptliddle/swifty-json-schema.git", branch: "main"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -26,6 +27,7 @@ let package = Package(
         .target(
             name: "OpenAIKit",
             dependencies: [
+                .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "SwiftyJsonSchema", package: "swifty-json-schema"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(platforms: [.linux, .android, .wasi, .windows]))
             ]),
