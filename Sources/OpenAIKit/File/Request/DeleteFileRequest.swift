@@ -1,4 +1,4 @@
-#if os(Linux)
+#if USE_NIO
 import NIOHTTP1
 #endif
 

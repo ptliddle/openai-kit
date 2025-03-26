@@ -1,6 +1,6 @@
 import XCTest
 
-#if os(Linux)
+#if USE_NIO
 import NIOPosix
 import AsyncHTTPClient
 #endif
@@ -9,7 +9,7 @@ import AsyncHTTPClient
 
 final class ClientTests: XCTestCase {
     
-#if os(Linux)
+#if USE_NIO
     private var client: Client!
     private var httpClient: HTTPClient!
     override func setUp() {

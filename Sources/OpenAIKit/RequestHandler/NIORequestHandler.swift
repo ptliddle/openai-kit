@@ -1,4 +1,4 @@
-#if os(Linux) || USE_NIO
+#if USE_NIO
 
 import AsyncHTTPClient
 import NIO
@@ -22,7 +22,7 @@ struct NIORequestHandler: RequestHandler {
     }
     
     func perform<T: Decodable>(request: Request) async throws -> T {
-        var headers = configuration.headers
+        var headers: HTTPHeaders = configuration.headers
         
         headers.add(contentsOf: request.headers)
         

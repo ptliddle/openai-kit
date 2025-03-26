@@ -222,7 +222,7 @@ extension HTTPMethod: RawRepresentable {
 public class HTTPHeaders: Sequence {
     private var headers = [String: String]()
     
-    func add(name: String, value: String) {
+    public func add(name: String, value: String) {
         headers[name] = value
     }
     

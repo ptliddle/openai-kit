@@ -1,8 +1,9 @@
 
-#if canImport(NIOHTTP1)
+#if USE_NIO && canImport(NIOHTTP1)
 import NIOHTTP1
 import AsyncHTTPClient
 #endif
+
 
 import Foundation
 import SwiftyJsonSchema
