@@ -1,6 +1,10 @@
 import Foundation
 import SwiftyJsonSchema
 
+#if USE_NIO
+import NIOHTTP1
+#endif
+
 public struct CreateResponseRequest: Request {
     
     public enum ResponseFormat: Encodable {

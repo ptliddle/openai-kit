@@ -1,5 +1,5 @@
 
-#if os(Linux)
+#if USE_NIO
 import NIOHTTP1
 import NIO
 import AsyncHTTPClient
@@ -38,7 +38,7 @@ public struct Client {
         self.init(requestHandler: DelegatedRequestWrapper(handler: delegatedHandler))
     }
     
-#if os(Linux)
+#if USE_NIO
     public init(
         httpClient: HTTPClient,
         configuration: Configuration
@@ -49,9 +49,7 @@ public struct Client {
         )
         self.init(requestHandler: requestHandler)
     }
-#endif
-    
-#if !os(Linux)
+#else
     public init(
         session: URLSession,
         configuration: Configuration

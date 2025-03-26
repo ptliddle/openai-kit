@@ -5,7 +5,7 @@
 //  Created by Dylan Shine on 3/19/23.
 //
 
-#if os(Linux)
+#if USE_NIO
 import NIOHTTP1
 import AsyncHTTPClient
 #endif

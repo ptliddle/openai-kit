@@ -3,6 +3,37 @@
 
 import PackageDescription
 
+let forceNIOUse = false
+
+// These variables configure SPM so we use NIO when running on Linux but can also force NIO use when
+// when debugging using the forceNIOUse variable above
+let targetDependencies: [Target.Dependency] = {
+    if forceNIOUse {
+        return [
+            Target.Dependency.product(name: "NIOHTTP1", package: "swift-nio"),
+            Target.Dependency.product(name: "SwiftyJsonSchema", package: "swifty-json-schema"),
+            Target.Dependency.product(name: "AsyncHTTPClient", package: "async-http-client")
+        ]
+    }
+    else {
+        return  [
+            
+            Target.Dependency.product(name: "NIOHTTP1", package: "swift-nio", condition: .when(platforms: [.linux, .android, .wasi, .windows])),
+            Target.Dependency.product(name: "SwiftyJsonSchema", package: "swifty-json-schema"),
+            Target.Dependency.product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(platforms: [.linux, .android, .wasi, .windows]))
+        ]
+    }
+}()
+
+let useNIOSwiftSetting: SwiftSetting = {
+    if forceNIOUse {
+        return .define("USE_NIO")
+    }
+    else {
+        return .define("USE_NIO", .when(platforms: [.linux, .android, .wasi, .windows]))
+    }
+}()
+
 let package = Package(
     name: "openai-kit",
     platforms: [
@@ -26,11 +57,8 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "OpenAIKit",
-            dependencies: [
-                .product(name: "NIOHTTP1", package: "swift-nio"),
-                .product(name: "SwiftyJsonSchema", package: "swifty-json-schema"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(platforms: [.linux, .android, .wasi, .windows]))
-            ]),
+            dependencies: targetDependencies,
+            swiftSettings: [useNIOSwiftSetting]),
         .testTarget(
             name: "OpenAIKitTests",
             dependencies: ["OpenAIKit"],
