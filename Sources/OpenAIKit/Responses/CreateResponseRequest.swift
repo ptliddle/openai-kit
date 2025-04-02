@@ -58,7 +58,8 @@ public struct CreateResponseRequest: Request {
         topP: Double? = nil,
         tools: [Tool]? = nil,
         user: String? = nil,
-        method: HTTPMethod = .POST
+        method: HTTPMethod = .POST,
+        reasoningEffort: String?
     ) {
         self.method = method
         
@@ -75,7 +76,8 @@ public struct CreateResponseRequest: Request {
             store: store,
             topP: topP,
             tools: tools,
-            user: user
+            user: user, 
+            reasoningEffort: reasoningEffort
         )
         
         self.body = try? Self.encoder.encode(body)
@@ -102,6 +104,7 @@ extension CreateResponseRequest {
         let topP: Double?
         let tools: [Tool]?
         let user: String?
+        let reasoningEffort: String?
             
         enum CodingKeys: String, CodingKey {
             case model
@@ -118,6 +121,7 @@ extension CreateResponseRequest {
             case store
             case maxTokens = "max_output_tokens"
             case user
+            case reasoning
         }
         
         
@@ -125,11 +129,20 @@ extension CreateResponseRequest {
             var format: ResponseFormat?
         }
         
+        enum ReasoningKeys: String, CodingKey {
+            case effort
+        }
+        
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(model, forKey: .model)
             
             try container.encode(input, forKey: .input)
+            
+            if let reasoningEffort = reasoningEffort {
+                var nestedContainer = container.nestedContainer(keyedBy: ReasoningKeys.self, forKey: .reasoning)
+                try nestedContainer.encodeIfPresent(reasoningEffort, forKey: .effort)
+            }
             
             try container.encodeIfPresent(include, forKey: .include)
             

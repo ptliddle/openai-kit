@@ -50,7 +50,7 @@ public struct CreateChatRequest: Request {
     init(
         model: String,
         messages: [Chat.Message],
-        temperature: Double,
+        temperature: Double?,
         topP: Double,
         n: Int,
         stream: Bool,
@@ -87,7 +87,7 @@ extension CreateChatRequest {
     struct Body: Encodable {
         let model: String
         let messages: [Chat.Message]
-        let temperature: Double
+        let temperature: Double?
         let topP: Double
         let n: Int
         let stream: Bool
@@ -124,7 +124,7 @@ extension CreateChatRequest {
                 try container.encode(messages, forKey: .messages)
             }
 
-            try container.encode(temperature, forKey: .temperature)
+            try container.encodeIfPresent(temperature, forKey: .temperature)
             try container.encode(topP, forKey: .topP)
             try container.encode(n, forKey: .n)
             try container.encode(stream, forKey: .stream)
