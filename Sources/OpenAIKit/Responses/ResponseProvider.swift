@@ -28,7 +28,8 @@ public struct ResponseProvider {
         metadata: [String: String]? = nil,
         store: Bool = true,
         tools: [Tool]? = nil,
-        user: String? = nil
+        user: String? = nil,
+        reasoningEffort: String?
     ) async throws -> Response {
         let request = CreateResponseRequest(
             model: model.id,
@@ -44,7 +45,8 @@ public struct ResponseProvider {
             topP: topP,
             tools: tools,
             user: user,
-            method: .POST
+            method: .POST,
+            reasoningEffort: reasoningEffort
         )
         
         return try await requestHandler.perform(request: request)
