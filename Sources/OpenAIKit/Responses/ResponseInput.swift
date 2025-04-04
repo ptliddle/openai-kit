@@ -33,9 +33,9 @@ public enum ResponseInput: Codable {
 
 public struct InputMessage: Codable {
     public let role: Role
-    public let content: [MessageContent]
+    public let content: [Response.MessageContent]
     
-    public init(role: Role, content: [MessageContent]) {
+    public init(role: Role, content: [Response.MessageContent]) {
         self.role = role
         self.content = content
     }
@@ -47,62 +47,52 @@ public struct InputMessage: Codable {
     }
 }
 
-public enum MessageContent: Codable {
-    case inputText(String)
-    case inputImage(ImageURL)
-    case inputFile(String)
-    
-    public struct ImageURL: Codable {
-        public let imageUrl: String
-        
-        public init(imageUrl: String) {
-            self.imageUrl = imageUrl
-        }
+extension Response {
+    public enum MessageContent: Codable {
+        case inputText(String)
+        case inputImage(url: String)
+        case inputFile(String)
         
         enum CodingKeys: String, CodingKey {
-            case imageUrl = "image_url"
+            case type
+            case text
+            case imageUrl  = "image_url"
+            case fileId = "file_id"
         }
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case type
-        case text
-        case imageUrl = "image_url"
-        case fileId = "file_id"
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(String.self, forKey: .type)
         
-        switch type {
-        case "input_text":
-            let text = try container.decode(String.self, forKey: .text)
-            self = .inputText(text)
-        case "input_image":
-            let imageUrl = try container.decode(ImageURL.self, forKey: .imageUrl)
-            self = .inputImage(imageUrl)
-        case "input_file":
-            let fileId = try container.decode(String.self, forKey: .fileId)
-            self = .inputFile(fileId)
-        default:
-            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown content type: \(type)")
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let type = try container.decode(String.self, forKey: .type)
+            
+            switch type {
+            case "input_text":
+                let text = try container.decode(String.self, forKey: .text)
+                self = .inputText(text)
+            case "input_image":
+                let imageUrl = try container.decode(String.self, forKey: .imageUrl)
+                self = .inputImage(url: imageUrl)
+            case "input_file":
+                let fileId = try container.decode(String.self, forKey: .fileId)
+                self = .inputFile(fileId)
+            default:
+                throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown content type: \(type)")
+            }
         }
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
         
-        switch self {
-        case .inputText(let text):
-            try container.encode("input_text", forKey: .type)
-            try container.encode(text, forKey: .text)
-        case .inputImage(let imageUrl):
-            try container.encode("input_image", forKey: .type)
-            try container.encode(imageUrl, forKey: .imageUrl)
-        case .inputFile(let fileId):
-            try container.encode("input_file", forKey: .type)
-            try container.encode(fileId, forKey: .fileId)
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            switch self {
+            case .inputText(let text):
+                try container.encode("input_text", forKey: .type)
+                try container.encode(text, forKey: .text)
+            case .inputImage(let imageUrl):
+                try container.encode("input_image", forKey: .type)
+                try container.encode(imageUrl, forKey: .imageUrl)
+            case .inputFile(let fileId):
+                try container.encode("input_file", forKey: .type)
+                try container.encode(fileId, forKey: .fileId)
+            }
         }
     }
 }

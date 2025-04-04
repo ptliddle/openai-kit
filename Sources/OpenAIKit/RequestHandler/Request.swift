@@ -39,6 +39,8 @@ extension Request {
 extension JSONEncoder {
     static var requestEncoder: JSONEncoder {
         let encoder = JSONEncoder()
+        // We have to turn off default encoding to snakecase as it breaks schema encoding.
+        // Instead we use custom snake_case properties for encoding the OpenAI API payloads
 //        encoder.keyEncodingStrategy = .convertToSnakeCase
         return encoder
     }

@@ -71,26 +71,28 @@ public struct Response: Codable {
         public let function: ToolFunction?
     }
     
+    // This uses snake_case on decoding so we don't need to explicitly set it here
+    // If we use this with schema for encoding we'd need to have a seperate encoding for snake_case
     enum CodingKeys: String, CodingKey {
         case id
         case object
         case createdAt
         case status
         case error
-        case incompleteDetails
+        case incompleteDetails // = "incomplete_details"
         case instructions
-        case maxOutputTokens 
+        case maxOutputTokens // = "max_output_tokens"
         case model
         case output
-        case parallelToolCalls
-        case previousResponseId
+        case parallelToolCalls // = "parallel_tool_calls"
+        case previousResponseId // = "previous_response_id"
         case reasoning
         case store
         case temperature
         case text
-        case toolChoice 
+        case toolChoice // = "tool_choice"
         case tools
-        case topP 
+        case topP // = "top_p"
         case truncation
         case usage
         case user
