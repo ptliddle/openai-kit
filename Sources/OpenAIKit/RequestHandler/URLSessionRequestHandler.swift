@@ -24,9 +24,14 @@ struct URLSessionRequestHandler: RequestHandler {
         decoder.dateDecodingStrategy = request.dateDecodingStrategy
         do {
             return try decoder.decode(T.self, from: data)
-        } catch {
+        } 
+        catch {
+            let originalError = error
 //            #error("It's encoding 'schema' as 'json_schema' and the new one needs just schema")
-            throw try decoder.decode(APIErrorResponse.self, from: data)
+            guard let apiError = try? decoder.decode(APIErrorResponse.self, from: data) else {
+                throw originalError
+            }
+            throw apiError
         }
     }
     

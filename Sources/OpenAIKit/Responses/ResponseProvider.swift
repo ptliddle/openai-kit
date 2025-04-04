@@ -97,8 +97,8 @@ public struct ResponseList: Codable {
     
     enum CodingKeys: String, CodingKey {
         case object, data
-        case firstId = "first_id"
-        case lastId = "last_id"
-        case hasMore = "has_more"
+        case firstId // = "first_id"
+        case lastId // = "last_id"
+        case hasMore // = "has_more"
     }
 }
