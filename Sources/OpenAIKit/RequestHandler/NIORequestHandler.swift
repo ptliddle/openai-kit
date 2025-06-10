@@ -1,5 +1,3 @@
-#if os(Linux)
-
 import AsyncHTTPClient
 import NIO
 import NIOHTTP1
@@ -22,10 +20,6 @@ struct NIORequestHandler: RequestHandler {
     }
     
     func perform<T: Decodable>(request: Request) async throws -> T {
-        var headers = configuration.headers
-        
-        headers.add(contentsOf: request.headers)
-        
         let url = try generateURL(for: request)
         
         let body: HTTPClient.Body? = {
@@ -33,14 +27,41 @@ struct NIORequestHandler: RequestHandler {
             return .data(data)
         }()
         
+        #if os(Linux)
+        // On Linux, we need to convert between OpenAIKit and NIOHTTP1 types
+        var nioHeaders = NIOHTTP1.HTTPHeaders()
+        
+        // Add configuration headers
+        for (name, value) in configuration.headers {
+            nioHeaders.add(name: name, value: value)
+        }
+        
+        // Add request headers
+        for (name, value) in request.headers {
+            nioHeaders.add(name: name, value: value)
+        }
+        
+        let nioMethod = NIOHTTP1.HTTPMethod(rawValue: request.method.rawValue)
+        
+        let response = try await httpClient.execute(
+            request: HTTPClient.Request(
+                url: url,
+                method: nioMethod,
+                headers: nioHeaders,
+                body: body
+            )
+        ).get()
+        #else
+        // On macOS, we can use the OpenAIKit types directly
         let response = try await httpClient.execute(
             request: HTTPClient.Request(
                 url: url,
                 method: request.method,
-                headers: headers,
+                headers: configuration.headers.merging(request.headers),
                 body: body
             )
         ).get()
+        #endif
         
         
         guard let byteBuffer = response.body else {
@@ -63,10 +84,26 @@ struct NIORequestHandler: RequestHandler {
         
         var httpClientRequest = HTTPClientRequest(url: url)
         
+        #if os(Linux)
+        // On Linux, we need to convert between OpenAIKit and NIOHTTP1 types
+        // Add configuration headers
+        for (name, value) in configuration.headers {
+            httpClientRequest.headers.add(name: name, value: value)
+        }
+        
+        // Add request headers
+        for (name, value) in request.headers {
+            httpClientRequest.headers.add(name: name, value: value)
+        }
+        
+        httpClientRequest.method = NIOHTTP1.HTTPMethod(rawValue: request.method.rawValue)
+        #else
+        // On macOS, we can use the OpenAIKit types directly
         httpClientRequest.headers.add(contentsOf: configuration.headers)
         httpClientRequest.headers.add(contentsOf: request.headers)
         
         httpClientRequest.method = request.method
+        #endif
 
         if let body = request.body {
             httpClientRequest.body = .bytes(body)
@@ -101,5 +138,4 @@ struct NIORequestHandler: RequestHandler {
     }
 
 }
-#endif
 
