@@ -1,5 +1,4 @@
 import Foundation
-import SwiftyJsonSchema
 
 #if USE_NIO
 import NIOHTTP1

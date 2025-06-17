@@ -6,7 +6,6 @@ import AsyncHTTPClient
 
 
 import Foundation
-import SwiftyJsonSchema
 
 protocol Request {
     var method: HTTPMethod { get }

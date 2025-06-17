@@ -6,7 +6,6 @@ import AsyncHTTPClient
 
 
 import Foundation
-import SwiftyJsonSchema
 
 struct CreateEmbeddingRequest: Request {
     let method: HTTPMethod = .POST

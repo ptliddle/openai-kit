@@ -6,7 +6,6 @@ import AsyncHTTPClient
 #endif
 
 import Foundation
-import SwiftyJsonSchema
 
 public struct Client {
     

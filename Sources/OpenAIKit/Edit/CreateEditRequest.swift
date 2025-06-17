@@ -6,7 +6,6 @@ import AsyncHTTPClient
 
 
 import Foundation
-import SwiftyJsonSchema
 
 struct CreateEditRequest: Request {
     let method: HTTPMethod = .POST
