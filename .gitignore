@@ -8,4 +8,12 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 .swiftpm/*
-.idea/
+.idea/### SwiftPM template
+Packages
+.build/
+xcuserdata
+DerivedData/
+*.xcodeproj
+Package.resolved
+.idea
+
