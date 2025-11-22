@@ -293,10 +293,15 @@ extension Model {
         public var id: String
     }
     
+    public enum GPT5: String, ModelID {
+        case gpt5 = "gpt-5"
+    }
+    
     public enum GPT4: String, ModelID {
         case o1 = "o1-2024-12-17"
         case o1Pro = "o1-pro"
         case o1Mini = "o1-mini"
+        case gpt4_1 = "gpt-4.1"
         case gpt4 = "gpt-4"
         case gpt4o = "gpt-4o"
         case gpt4oLatest = "gpt-4o-2024-08-06"

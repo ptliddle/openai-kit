@@ -114,6 +114,7 @@ extension CreateResponseRequest {
             case text
             case temperature
             case topP = "top_p"
+            case tools
             case n
             case stream
             case stop
@@ -158,6 +159,8 @@ extension CreateResponseRequest {
             }
             
             try container.encode(topP, forKey: .topP)
+            
+            try container.encodeIfPresent(tools, forKey: .tools)
 
             if let maxTokens {
                 try container.encode(maxTokens, forKey: .maxTokens)
@@ -207,11 +210,89 @@ struct ListResponsesRequest: Request {
     }
 }
 
-public struct Tool: Codable {
-    public let type: ToolType
+//public enum ParamValue: Codable {
+//    case string(String)
+//    case array(String)
+//    case map(String)
+//    
+//    #error("Custom coding here to make dictionary")
+//    
+//    public func encode(to encoder: any Encoder) throws {
+//        var container = try encoder.singleValueContainer()
+//        switch self {
+//        case .string(let string):
+//            try container.encode(string)
+//        case .array(let array):
+//            var nestedContainer = try container.encode(array)
+//        case .map(let map):
+//            var nestedContainer = try container.encode(map)
+//        }
+//    }
+//}
+
+
+/// This is a type for handing codable objects through directly to an API
+/// This allows the library to not have to worry about the specific implementation details just that it can be converted to JSON for sending
+/// and the response can be decoded
+public struct ErasedCodable: Codable {
+    
+//    var cType: any Codable.Type
+    var codable: Codable
+    
+    enum CodingKeys: CodingKey {
+        case cType
+        case codable
+    }
+    
+    
+//    init(cType: Codable, codable: Codable) {
+////        self.cType = cType
+//        self.codable = codable
+//    }
+    
+    public init(with codable: Codable) {
+        self.codable = codable
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        // For decode we through and error
+        fatalError("Decoding a wrapped codable is not currently supported, grab the data and decode directly")
+    }
+    
+    // For encoding we just grab the container and call encode on the wrapped type
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(codable)
+    }
+    
+//    func decode<T>(to: T.Type) -> T where T: Decodable {
+//        
+//    }
+}
+
+public struct Tool: Encodable {
+
+//    public struct Params: Codable {
+//        let type: String
+//        let properties: JSONSchema
+//        let required: [String]
+//    }
     
     public enum ToolType: String, Codable {
         case webSearch = "web_search"
         case fileSearch = "file_search"
+        case function = "function"
+    }
+    
+    public let type: ToolType
+    public let name: String
+    public let description: String
+    public let parameters: ErasedCodable // This should be a json schema
+    
+    public init(type: ToolType, name: String, description: String, parameters: ErasedCodable) {
+        self.type = type
+        self.name = name
+        self.description = description
+        self.parameters = parameters
     }
 }

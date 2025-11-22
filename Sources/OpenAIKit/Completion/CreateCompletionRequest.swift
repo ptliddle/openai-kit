@@ -19,6 +19,7 @@ struct CreateCompletionRequest: Request {
         maxTokens: Int,
         temperature: Double,
         topP: Double,
+        tools: [Tool],
         n: Int,
         stream: Bool,
         logprobs: Int?,
@@ -38,6 +39,7 @@ struct CreateCompletionRequest: Request {
             maxTokens: maxTokens,
             temperature: temperature,
             topP: topP,
+            tools: tools,
             n: n,
             stream: stream,
             logprobs: logprobs,
@@ -62,6 +64,7 @@ extension CreateCompletionRequest {
         let maxTokens: Int
         let temperature: Double
         let topP: Double
+        let tools: [Tool]
         let n: Int
         let stream: Bool
         let logprobs: Int?
@@ -80,6 +83,7 @@ extension CreateCompletionRequest {
             case maxTokens = "max_tokens"
             case temperature
             case topP = "top_p"
+            case tools
             case n
             case stream
             case logprobs
@@ -104,6 +108,9 @@ extension CreateCompletionRequest {
             try container.encode(maxTokens, forKey: .maxTokens)
             try container.encode(temperature, forKey: .temperature)
             try container.encode(topP, forKey: .topP)
+            
+            try container.encodeIfPresent(tools, forKey: .tools)
+            
             try container.encode(n, forKey: .n)
             try container.encode(stream, forKey: .stream)
             try container.encodeIfPresent(logprobs, forKey: .logprobs)
