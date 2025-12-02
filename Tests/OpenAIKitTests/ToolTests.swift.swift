@@ -99,18 +99,12 @@ final class ToolTests_swift: XCTestCase {
    
 
     func test_encodeToolDefinition() throws {
-//        let schemaObject = try JSONSerialization.jsonObject(with: testFunctionSchema.data(using: .utf8)!)
-        
-//        let schema = JSONDecoder().decode(CodableValue.self, from: testFunctionSchema)
-        
+
         let jsonEncoder = JSONEncoder()
         let data = try jsonEncoder.encode(tool)
         
         let json = try TestHelpers.prettyPrintJSON(from: data)
-        
-//        let object = try JSONSerialization.jsonObject(with: data)
-//        let prettyData = try JSONSerialization.data(withJSONObject: object, options: .prettyPrinted)
-//        let json = String(data: prettyData, encoding: .utf8)
+
         print(json)
     }
 
@@ -126,17 +120,21 @@ final class ToolTests_swift: XCTestCase {
             .init(role: .system, content: [.inputText("You are a weather forecaster with the following tool available to help")]),
             .init(role: .user, content: [.inputText("What is the weather in Phoenix, AZ USA today in celsius?")])
         ]
-        
+
         let completion = try await client.responses.create(
             model: Model.GPT4.gpt4_1,
-            messages: .init("What is the weather in Phoenix, AZ USA today in celsius?"), // [.init(role: .user, content: [.inputText("What is the weather in Phoenix, AZ USA today in celsius?")])], //messages,
-//            instructions: "What is the weather in Phoenix, AZ USA today in celsius?",
+            messages: messages,
             tools: [tool],
-            reasoningEffort: nil
-//            reasoningEffort: "low"
-        )
+            reasoningEffort: nil)
         
         print(completion)
+        
+        
+        
+        if let arg1 = completion.output.first?.arguments {
+            let arguments = try JSONDecoder().decode([String: String].self, from: arg1.data(using: .utf8)!)
+            print(arguments)
+        }
     }
     
 }

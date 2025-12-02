@@ -1,5 +1,14 @@
 import Foundation
 
+#if DEBUG
+extension Data {
+    var asString: String? {
+        let string = String(data: self, encoding: .utf8)
+        return string
+    }
+}
+#endif
+
 #if !os(Linux)
 struct URLSessionRequestHandler: RequestHandler {
     let session: URLSession
@@ -20,6 +29,16 @@ struct URLSessionRequestHandler: RequestHandler {
     func perform<T>(request: Request) async throws -> T where T : Decodable {
         let urlRequest = try makeUrlRequest(request: request)
         let (data, _) = try await session.data(for: urlRequest)
+        
+#if DEBUG
+        
+        print("----- REQUEST -----: \n \(request.body?.asString ?? "NONE") --------------- ")
+        print("----- RESPONSE -----: \n \(data.asString ?? "NONE") --------------- ")
+        
+        print("----- REQUEST B64-----: \n \(request.body?.base64EncodedString() ?? "NONE") --------------- ")
+        print("----- RESPONSE B64-----: \n \(data.base64EncodedString() ?? "NONE") --------------- ")
+#endif
+        
         decoder.keyDecodingStrategy = request.keyDecodingStrategy
         decoder.dateDecodingStrategy = request.dateDecodingStrategy
         do {
@@ -27,7 +46,6 @@ struct URLSessionRequestHandler: RequestHandler {
         } 
         catch {
             let originalError = error
-//            #error("It's encoding 'schema' as 'json_schema' and the new one needs just schema")
             guard let apiError = try? decoder.decode(APIErrorResponse.self, from: data) else {
                 throw originalError
             }

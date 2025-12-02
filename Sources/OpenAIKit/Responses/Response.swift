@@ -165,20 +165,14 @@ public struct Response: Codable {
 }
 
 
-
-// MARK: - OutputItem
-public struct OutputItem: Codable {
-    public let id: String
-    public let type: String
-    public let status: String?
-    public let role: String?
-    public let content: [ResponseContent]?
-    public let summary: [String]?
-    
-    enum CodingKeys: String, CodingKey {
-        case id, type, status, role, content, summary
-    }
-}
+//{
+//  "id": "fc_098c48efd872484c00692b2d60400081938efb356d7fd3822b",
+//  "type": "function_call",
+//  "status": "completed",
+//  "arguments": "{\"url\":\"https://www.extremetech.com/aerospace/acme-space-to-use-balloon-rocket-hybrid-to-launch-orbital-pharmaceutical\",\"waitFor\":2000,\"timeout\":120000,\"excludeTags\":[\"script\",\"style\"],\"mobile\":false,\"formats\":[\"markdown\",\"extract\"],\"scrapeOptions\":{\"onlyMainContent\":true,\"waitFor\":2000,\"formats\":[\"markdown\",\"extract\"]}}",
+//  "call_id": "call_FOVne63HihkNtl1aUn9zw2PS",
+//  "name": "mcp-server-firecrawl_firecrawl_scrape"
+//}
 
 // MARK: - ResponseContent
 public struct ResponseContent: Codable {
@@ -202,12 +196,51 @@ public struct Annotation: Codable {
 public struct ToolCall: Codable {
     public let id: String
     public let type: String
+    public let callId: String?
     public let name: String?
     public let args: [String: String]?
     public let status: String?
     
+    public init(id: String, type: String = "function_call", name: String?, args: [String : String]?, status: String?, callId: String?) {
+        self.id = id
+        self.type = type
+        self.name = name
+        self.args = args
+        self.status = status
+        self.callId = callId
+    }
+    
     enum CodingKeys: String, CodingKey {
-        case id, type, name, args, status
+        case id, type, name, status
+        case callId = "call_id"
+        case args = "arguments"
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.type = try container.decode(String.self, forKey: .type)
+        self.name = try container.decodeIfPresent(String.self, forKey: .name)
+        self.status = try container.decodeIfPresent(String.self, forKey: .status)
+        self.callId = try container.decodeIfPresent(String.self, forKey: .callId)
+        self.args = try container.decodeIfPresent([String : String].self, forKey: .args)
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.id, forKey: .id)
+        try container.encode(self.type, forKey: .type)
+        try container.encodeIfPresent(self.name, forKey: .name)
+        
+        // Args have to be a json string
+        let jsonData = try JSONEncoder().encode(self.args)
+        if let jsonString = String(data: jsonData, encoding: .utf8) {
+            try container.encode(jsonString, forKey: .args)
+        }
+        
+        
+        try container.encodeIfPresent(self.status, forKey: .status)
+        try container.encodeIfPresent(self.callId, forKey: .callId)
     }
 }
 

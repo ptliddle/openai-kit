@@ -17,7 +17,7 @@ public struct ResponseProvider {
      */
     public func create(
         model: ModelID,
-        messages: [InputMessage],
+        messages: [InputItem],
         include: [String]? = nil,
         instructions: String? = nil,
         previousResponseId: String? = nil,
@@ -33,7 +33,7 @@ public struct ResponseProvider {
     ) async throws -> Response {
         let request = CreateResponseRequest(
             model: model.id,
-            input: .message(messages),
+            input: .messages(messages),
             include: include,
             instructions: instructions,
             previousResponseId: previousResponseId,

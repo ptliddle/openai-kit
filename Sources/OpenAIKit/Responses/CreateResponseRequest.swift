@@ -210,45 +210,17 @@ struct ListResponsesRequest: Request {
     }
 }
 
-//public enum ParamValue: Codable {
-//    case string(String)
-//    case array(String)
-//    case map(String)
-//    
-//    #error("Custom coding here to make dictionary")
-//    
-//    public func encode(to encoder: any Encoder) throws {
-//        var container = try encoder.singleValueContainer()
-//        switch self {
-//        case .string(let string):
-//            try container.encode(string)
-//        case .array(let array):
-//            var nestedContainer = try container.encode(array)
-//        case .map(let map):
-//            var nestedContainer = try container.encode(map)
-//        }
-//    }
-//}
-
-
 /// This is a type for handing codable objects through directly to an API
 /// This allows the library to not have to worry about the specific implementation details just that it can be converted to JSON for sending
 /// and the response can be decoded
 public struct ErasedCodable: Codable {
-    
-//    var cType: any Codable.Type
+
     var codable: Codable
     
     enum CodingKeys: CodingKey {
         case cType
         case codable
     }
-    
-    
-//    init(cType: Codable, codable: Codable) {
-////        self.cType = cType
-//        self.codable = codable
-//    }
     
     public init(with codable: Codable) {
         self.codable = codable
@@ -264,19 +236,9 @@ public struct ErasedCodable: Codable {
         var container = encoder.singleValueContainer()
         try container.encode(codable)
     }
-    
-//    func decode<T>(to: T.Type) -> T where T: Decodable {
-//        
-//    }
 }
 
 public struct Tool: Encodable {
-
-//    public struct Params: Codable {
-//        let type: String
-//        let properties: JSONSchema
-//        let required: [String]
-//    }
     
     public enum ToolType: String, Codable {
         case webSearch = "web_search"
