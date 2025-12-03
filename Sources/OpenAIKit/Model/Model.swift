@@ -291,6 +291,10 @@ extension Model {
     
     public struct Other: ModelID {
         public var id: String
+        
+        public init(id: String) {
+            self.id = id
+        }
     }
     
     public enum GPT5: String, ModelID {
