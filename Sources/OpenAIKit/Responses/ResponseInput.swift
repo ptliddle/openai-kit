@@ -101,7 +101,9 @@ extension Response {
     public enum MessageContent: Codable {
         
         case inputText(String)
-        case inputImage(url: String)
+        case inputImageUrl(url: String)
+        case inputImage(data: Data, imageType: String)
+        case inputImageFile(fileId: String)
         case inputFile(String)
         
         case outputText(String)     // Represents input text that was previously output by AI, the responses API requires us to differentiate
@@ -111,6 +113,32 @@ extension Response {
             case text
             case imageUrl  = "image_url"
             case fileId = "file_id"
+        }
+
+        private static func extractImageDetails(fromUrl url: String) throws -> MessageContent {
+            if let urlcomps = URLComponents(string: url), (urlcomps.scheme == "http" || urlcomps.scheme == "https") {
+                return .inputImageUrl(url: url)
+            }
+
+            guard let prefixRange = url.range(of: "data:image/", options: .anchored) else {
+                throw DecodingError.dataCorrupted(.init(codingPath: [CodingKeys.imageUrl], debugDescription: "url does not contain data:image"))
+            }
+
+            guard let nextOccurrenceIndex = url[prefixRange.upperBound...].firstIndex(of: ";") else {
+                throw DecodingError.dataCorrupted(.init(codingPath: [CodingKeys.imageUrl], debugDescription: "url does not contain data:image"))
+            }
+
+            let imageType = String(url[prefixRange.upperBound..<nextOccurrenceIndex])
+
+            guard let base64PrefixRange = url[nextOccurrenceIndex...].range(of: "base64,") else {
+                throw DecodingError.dataCorrupted(.init(codingPath: [CodingKeys.imageUrl], debugDescription: "url does not contain base64"))
+            }
+
+            let base64String = url[base64PrefixRange.upperBound...]
+            guard let data = Data(base64Encoded: String(base64String)) else {
+                throw DecodingError.dataCorrupted(.init(codingPath: [CodingKeys.imageUrl], debugDescription: "Expected base64 data"))
+            }
+            return .inputImage(data: data, imageType: imageType)
         }
         
         public init(from decoder: Decoder) throws {
@@ -125,8 +153,15 @@ extension Response {
                 let text = try container.decode(String.self, forKey: .text)
                 self = .outputText(text)
             case "input_image":
-                let imageUrl = try container.decode(String.self, forKey: .imageUrl)
-                self = .inputImage(url: imageUrl)
+                if let imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl) {
+                    self = try Self.extractImageDetails(fromUrl: imageUrl)
+                }
+                else if let fileId = try container.decodeIfPresent(String.self, forKey: .fileId) {
+                    self = .inputImageFile(fileId: fileId)
+                }
+                else {
+                    throw DecodingError.dataCorruptedError(forKey: .imageUrl, in: container, debugDescription: "input_image requires image_url or file_id")
+                }
             case "input_file":
                 let fileId = try container.decode(String.self, forKey: .fileId)
                 self = .inputFile(fileId)
@@ -145,9 +180,17 @@ extension Response {
             case .outputText(let text):
                 try container.encode("output_text", forKey: .type)
                 try container.encode(text, forKey: .text)
-            case .inputImage(let imageUrl):
+            case .inputImageUrl(let imageUrl):
                 try container.encode("input_image", forKey: .type)
                 try container.encode(imageUrl, forKey: .imageUrl)
+            case .inputImageFile(let fileId):
+                try container.encode("input_image", forKey: .type)
+                try container.encode(fileId, forKey: .fileId)
+            case .inputImage(let data, let imageType):
+                try container.encode("input_image", forKey: .type)
+                let imageUrl = "data:image/\(imageType);base64,\(data.base64EncodedString())"
+                try container.encode(imageUrl, forKey: .imageUrl)
+
             case .inputFile(let fileId):
                 try container.encode("input_file", forKey: .type)
                 try container.encode(fileId, forKey: .fileId)
