@@ -9,6 +9,9 @@ public enum FinishReason: String {
     
     /// Omitted content due to a flag from our content filters
     case contentFilter = "content_filter"
+
+    /// The model is requesting one or more tool calls.
+    case toolCalls = "tool_calls"
 }
 
 extension FinishReason: Codable {}

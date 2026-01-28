@@ -27,7 +27,8 @@ public struct ChatProvider {
         frequencyPenalty: Double = 0.0,
         logitBias: [String : Int] = [:],
         user: String? = nil,
-        responseFormat: CreateChatRequest.ResponseFormat? = nil
+        responseFormat: CreateChatRequest.ResponseFormat? = nil,
+        tools: [Tool]? = nil
     ) async throws -> Chat {
         
         let request = try CreateChatRequest(
@@ -43,7 +44,8 @@ public struct ChatProvider {
             frequencyPenalty: frequencyPenalty,
             logitBias: logitBias,
             user: user, 
-            responseFormat: responseFormat
+            responseFormat: responseFormat,
+            tools: tools
         )
     
         return try await requestHandler.perform(request: request)
@@ -74,7 +76,8 @@ public struct ChatProvider {
         frequencyPenalty: Double = 0.0,
         logitBias: [String : Int] = [:],
         user: String? = nil,
-        responseFormat: CreateChatRequest.ResponseFormat? = nil
+        responseFormat: CreateChatRequest.ResponseFormat? = nil,
+        tools: [Tool]? = nil
     ) async throws -> AsyncThrowingStream<ChatStream, Error> {
         
         let request = try CreateChatRequest(
@@ -90,7 +93,8 @@ public struct ChatProvider {
             frequencyPenalty: frequencyPenalty,
             logitBias: logitBias,
             user: user, 
-            responseFormat: responseFormat
+            responseFormat: responseFormat,
+            tools: tools
         )
     
         return try await requestHandler.stream(request: request)

@@ -265,7 +265,12 @@ final class MessageTests: XCTestCase {
         case .system(_):
             XCTFail()
         case .assistant(let content):
-            XCTAssertEqual(content, "The 2020 World Series was played in Arlington, Texas at the Globe Life Field, which was the new home stadium for the Texas Rangers.")
+            switch content {
+            case .text(let text):
+                XCTAssertEqual(text, "The 2020 World Series was played in Arlington, Texas at the Globe Life Field, which was the new home stadium for the Texas Rangers.")
+            default:
+                XCTFail("Expected assistant text content")
+            }
         case .user(_):
             XCTFail()
         }
@@ -288,10 +293,67 @@ final class MessageTests: XCTestCase {
             frequencyPenalty: 0.0,
             logitBias: [:],
             user: nil,
-            responseFormat: nil
+            responseFormat: nil,
+            tools: nil
         )
         
         print(request.body)
+    }
+
+    func testChatDecodingWithToolCalls() throws {
+        let exampleResponse = """
+            {
+              "id":"chatcmpl-03f5a8f0-0a4f-4d5b-bb7d-1d38c3691371",
+              "object":"chat.completion",
+              "created":1769627949,
+              "model":"mercury",
+              "choices":[{
+                "index":0,
+                "message":{
+                  "role":"assistant",
+                  "content":"",
+                  "tool_calls":[{
+                    "index":0,
+                    "id":"chatcmpl-tool-507be31726374a158cd9a2cf585d6a4c",
+                    "type":"function",
+                    "function":{
+                      "name":"ventus-notes-mcp_createUpdateNote",
+                      "arguments":"{\"noteType\": \"md\"}"
+                    }
+                  }],
+                  "tool_call_id":null
+                },
+                "finish_reason":"tool_calls"
+              }],
+              "usage":{
+                "prompt_tokens":2313,
+                "completion_tokens":187,
+                "total_tokens":2500
+              },
+              "warning":null,
+              "reasoning_summary":null
+            }
+            """.data(using: .utf8)!
+
+        let chat = try decoder.decode(Chat.self, from: exampleResponse)
+        XCTAssertEqual(chat.choices.count, 1)
+        let choice = chat.choices[0]
+        XCTAssertEqual(choice.finishReason, .toolCalls)
+        switch choice.message {
+        case .assistant(let content):
+            switch content {
+            case .textAndToolCalls(_, let toolCalls, _):
+                XCTAssertEqual(toolCalls.count, 1)
+                XCTAssertEqual(toolCalls.first?.function.name, "ventus-notes-mcp_createUpdateNote")
+            case .toolCalls(let toolCalls, _):
+                XCTAssertEqual(toolCalls.count, 1)
+                XCTAssertEqual(toolCalls.first?.function.name, "ventus-notes-mcp_createUpdateNote")
+            default:
+                XCTFail("Expected assistant tool calls")
+            }
+        default:
+            XCTFail("Expected assistant message")
+        }
     }
     
     func test_createMessageWithImage() async throws {

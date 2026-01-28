@@ -116,9 +116,9 @@ final class ToolTests_swift: XCTestCase {
 //    )
 //    
     func test_createToolCallChat() async throws {
-        let messages: [InputMessage] = [
-            .init(role: .system, content: [.inputText("You are a weather forecaster with the following tool available to help")]),
-            .init(role: .user, content: [.inputText("What is the weather in Phoenix, AZ USA today in celsius?")])
+        let messages: [InputItem] = [
+            .message(.init(role: .system, content: [.inputText("You are a weather forecaster with the following tool available to help")])),
+            .message(.init(role: .user, content: [.inputText("What is the weather in Phoenix, AZ USA today in celsius?")]))
         ]
 
         let completion = try await client.responses.create(
@@ -131,8 +131,8 @@ final class ToolTests_swift: XCTestCase {
         
         
         
-        if let arg1 = completion.output.first?.arguments {
-            let arguments = try JSONDecoder().decode([String: String].self, from: arg1.data(using: .utf8)!)
+        if let arg1 = completion.output.first?.arguments, let data = arg1.data(using: String.Encoding.utf8) {
+            let arguments = try JSONDecoder().decode([String: String].self, from: data)
             print(arguments)
         }
     }

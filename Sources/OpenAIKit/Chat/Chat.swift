@@ -28,7 +28,41 @@ extension Chat {
     public enum Message: Hashable {
         case system(content: String)
         case user(content: ContentOption)
-        case assistant(content: String)
+        case assistant(content: AssistantContentOption)
+        case tool(content: String, toolCallId: ToolID)
+    }
+}
+
+extension Chat.Message {
+    
+    public typealias ToolID = String
+    
+    public enum AssistantContentOption: Hashable, Codable {
+        case text(String)
+        case toolCalls([Chat.ToolCall], String?, ToolID?)
+    }
+}
+
+extension Chat {
+    public struct ToolCall: Hashable, Codable {
+        public let index: Int?
+        public let id: String
+        public let type: String
+        public let function: Function
+    }
+}
+
+extension Chat.ToolCall {
+    public struct Function: Hashable, Codable {
+        public let name: String
+        public let arguments: String
+    }
+}
+
+extension Chat {
+    public struct FunctionCall: Hashable, Codable {
+        public let name: String
+        public let arguments: String
     }
 }
 
@@ -271,47 +305,46 @@ extension Chat.Message: Codable {
     private enum CodingKeys: String, CodingKey {
         case role
         case content
+        case toolCalls
+        case toolCallId
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let role = try container.decode(String.self, forKey: .role)
-        
-//        let content = try container.decode(MessageContent.self, forKey: .content)
-        
-        let content: ContentOption
-        do {
-            // Try decoding as a string first
-            let textContent = try container.decode(String.self, forKey: .content)
-            content = .text(textContent)
-        }
-        catch let DecodingError.typeMismatch(type, context) where type == String.self {
-            let newContent = try container.decode([MessageContent].self, forKey: .content)
-            content = .content(newContent)
-        }
-        catch {
-            throw error
-        }
-            
-        
-        
+
         switch role {
         case "system":
-            switch content {
-            case let .text(text):
-                self = .system(content: text)
-            default:
-                throw DecodingError.dataCorrupted(.init(codingPath: [CodingKeys.content], debugDescription: "Content can only be text for system"))
-            }
+            let text = try container.decode(String.self, forKey: .content)
+            self = .system(content: text)
         case "user":
-            self = .user(content: content)
-        case "assistant":
-            switch content {
-            case let .text(text):
-                self = .assistant(content: text)
-            default:
-                throw DecodingError.dataCorrupted(.init(codingPath: [CodingKeys.content], debugDescription: "Content can only be text for assistant"))
+            do {
+                let text = try container.decode(String.self, forKey: .content)
+                self = .user(content: .text(text))
             }
+            catch let DecodingError.typeMismatch(type, context) where type == String.self {
+                let newContent = try container.decode([MessageContent].self, forKey: .content)
+                self = .user(content: .content(newContent))
+            }
+            catch {
+                throw error
+            }
+        case "assistant":
+            let toolCalls = try container.decodeIfPresent([Chat.ToolCall].self, forKey: .toolCalls)
+            let toolCallId = try container.decodeIfPresent(String.self, forKey: .toolCallId)
+            let text = (try? container.decodeIfPresent(String.self, forKey: .content)) ?? ""
+            if let toolCalls, !toolCalls.isEmpty {
+                self = .assistant(content: .toolCalls(toolCalls, text, toolCallId))
+            }
+            else {
+                self = .assistant(content: .text(text))
+            }
+        case "tool":
+            let content = try container.decode(String.self, forKey: .content)
+            guard let toolCallId = try container.decodeIfPresent(String.self, forKey: .toolCallId) else {
+                throw DecodingError.keyNotFound(CodingKeys.toolCallId, .init(codingPath: decoder.codingPath, debugDescription: "tool_call_id is required for tool messages"))
+            }
+            self = .tool(content: content, toolCallId: toolCallId)
         default:
             throw DecodingError.dataCorruptedError(forKey: .role, in: container, debugDescription: "Invalid type")
         }
@@ -333,7 +366,18 @@ extension Chat.Message: Codable {
             }
         case .assistant(let content):
             try container.encode("assistant", forKey: .role)
+            switch content {
+            case .text(let text):
+                try container.encode(text, forKey: .content)
+            case .toolCalls(let toolCalls, let text, let toolCallId):
+                try container.encode(toolCalls, forKey: .toolCalls)
+                try container.encode(text ?? "", forKey: .content)
+                try container.encodeIfPresent(toolCallId, forKey: .toolCallId)
+            }
+        case .tool(let content, let toolCallId):
+            try container.encode("tool", forKey: .role)
             try container.encode(content, forKey: .content)
+            try container.encode(toolCallId, forKey: .toolCallId)
         }
     }
 }
@@ -343,11 +387,33 @@ extension Chat.Message {
     public var content: MessageContent {
         get {
             switch self {
-            case .system(let content), .assistant(let content):
+            case .system(let content):
                 return .text(content)
+            case .assistant(let content):
+                switch content {
+                case .text(let text):
+                    return .text(text)
+                case .toolCalls(let tools, let text, let toolId):
+                    return .text(text ?? "")
+                }
             case .user(let content):
-//                return content
-                return .text("FIX LATER")
+                switch content {
+                case .text(let text):
+                    return .text(text)
+                case .content(let items):
+                    if items.count == 1, let first = items.first {
+                        return first
+                    }
+                    let text = items.compactMap({ item in
+                        if case let .text(value) = item {
+                            return value
+                        }
+                        return nil
+                    }).joined(separator: "\n")
+                    return .text(text)
+                }
+            case .tool(let content, let toolCallId):
+                return .text(content)
             }
         }
         set {
@@ -358,6 +424,8 @@ extension Chat.Message {
                 self = .assistant(content: content)
             case .user(let content):
                 self = .user(content: content)
+            case .tool(let content, let toolCallId):
+                self = .tool(content: content, toolCallId: toolCallId)
             }
         }
     }

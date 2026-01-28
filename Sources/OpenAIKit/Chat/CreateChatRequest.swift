@@ -6,6 +6,33 @@ import AsyncHTTPClient
 
 import Foundation
 
+// Custom encoding for ChatRequest so it works with inception tool calling
+struct ChatEncodableTool: Encodable {
+    let tool: Tool
+
+    enum CodingKeys: CodingKey {
+        case type
+        case function
+    }
+
+    enum FunctionCodingKeys: CodingKey {
+        case name
+        case description
+        case parameters
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tool.type.rawValue, forKey: .type)
+
+        var functionContainer = container.nestedContainer(keyedBy: FunctionCodingKeys.self, forKey: .function)
+        try functionContainer.encode(tool.name, forKey: .name)
+        try functionContainer.encode(tool.description, forKey: .description)
+        try functionContainer.encode(tool.parameters, forKey: .parameters)
+    }
+}
+
+
 public struct CreateChatRequest: Request {
     
     public enum ResponseFormat: Encodable {
@@ -58,7 +85,8 @@ public struct CreateChatRequest: Request {
         frequencyPenalty: Double,
         logitBias: [String: Int],
         user: String?,
-        responseFormat: CreateChatRequest.ResponseFormat?
+        responseFormat: CreateChatRequest.ResponseFormat?,
+        tools: [Tool]?
     ) throws {
         
         let body = Body(
@@ -74,7 +102,8 @@ public struct CreateChatRequest: Request {
             frequencyPenalty: frequencyPenalty,
             logitBias: logitBias,
             user: user,
-            responseFormat: responseFormat
+            responseFormat: responseFormat,
+            tools: tools
         )
                 
         self.body = try Self.encoder.encode(body)
@@ -96,6 +125,7 @@ extension CreateChatRequest {
         let logitBias: [String: Int]
         let user: String?
         let responseFormat: CreateChatRequest.ResponseFormat?
+        let tools: [Tool]?
             
         enum CodingKeys: String, CodingKey {
             case model
@@ -112,6 +142,7 @@ extension CreateChatRequest {
             case logitBias  = "logit_bias"
             case user
             case responseFormat = "response_format"
+            case tools
         }
         
         func encode(to encoder: Encoder) throws {
@@ -146,6 +177,10 @@ extension CreateChatRequest {
             
             try container.encodeIfPresent(responseFormat, forKey: .responseFormat)
 //            try container.encode(responseFormat, forKey: .responseFormat)
+            
+            if let tools = tools, !tools.isEmpty {
+                try container.encode(tools.map { ChatEncodableTool(tool: $0) }, forKey: .tools)
+            }
         }
     }
 }

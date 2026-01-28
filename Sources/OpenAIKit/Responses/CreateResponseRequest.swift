@@ -152,13 +152,13 @@ extension CreateResponseRequest {
             
             try container.encode(store, forKey: .store)
 
-            try container.encode(temperature, forKey: .temperature)
+            try container.encodeIfPresent(temperature, forKey: .temperature)
             
             if let responseFormat = responseFormat {
                 try container.encode(Text(format: responseFormat), forKey: .text)
             }
             
-            try container.encode(topP, forKey: .topP)
+            try container.encodeIfPresent(topP, forKey: .topP)
             
             try container.encodeIfPresent(tools, forKey: .tools)
 
