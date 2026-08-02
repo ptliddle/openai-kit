@@ -49,6 +49,13 @@ extension Chat {
         public let id: String
         public let type: String
         public let function: Function
+
+        public init(index: Int? = nil, id: String, type: String = "function", function: Function) {
+            self.index = index
+            self.id = id
+            self.type = type
+            self.function = function
+        }
     }
 }
 
@@ -56,6 +63,11 @@ extension Chat.ToolCall {
     public struct Function: Hashable, Codable {
         public let name: String
         public let arguments: String
+
+        public init(name: String, arguments: String) {
+            self.name = name
+            self.arguments = arguments
+        }
     }
 }
 
@@ -309,6 +321,13 @@ extension Chat.Message: Codable {
         case toolCallId
     }
 
+    private enum EncodingKeys: String, CodingKey {
+        case role
+        case content
+        case toolCalls = "tool_calls"
+        case toolCallId = "tool_call_id"
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let role = try container.decode(String.self, forKey: .role)
@@ -350,8 +369,11 @@ extension Chat.Message: Codable {
         }
     }
 
+    // We need a custom encoder to handle snake_case. The coding keys have to be different for encode and decode
+    // on decode we use a snakeCase decoding type on JSONDecoder but we can't do this for encoding as it breaks
+    // schema encoding, so we have to use a seperate set of snake_case keys and manually encode
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+        var container = encoder.container(keyedBy: EncodingKeys.self)
         switch self {
         case .system(let content):
             try container.encode("system", forKey: .role)
