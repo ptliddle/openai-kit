@@ -31,6 +31,11 @@ extension Request {
         return headers
     }
     
+    // NOTE: See KNOWN_ISSUES.md for information about the key encoding/decoding strategy asymmetry.
+    // The decoder uses .convertFromSnakeCase; the encoder does NOT use .convertToSnakeCase.
+    // Types needing explicit snake_case keys for encoding must use a separate EncodingKeys enum
+    // (see Chat.Message for an example). Do NOT add snake_case raw values to CodingKeys used for
+    // decoding — they will break because .convertFromSnakeCase converts keys before matching.
     var keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy { .convertFromSnakeCase }
     var dateDecodingStrategy: JSONDecoder.DateDecodingStrategy { .secondsSince1970 }
 }

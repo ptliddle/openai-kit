@@ -65,7 +65,7 @@ public struct OutputItem: Codable {
         case summary
         case name
         case arguments
-        case callId // = "call_id"
+        case callId = "call_id"
     }
     
     public init(from decoder: any Decoder) throws {
