@@ -12,6 +12,11 @@ extension RequestHandler {
         var components = URLComponents()
         components.scheme = configuration.api?.scheme.value ?? request.scheme.value
         components.host = configuration.api?.host ?? request.host
+        
+        if let port = configuration.api?.port {
+            components.port = port
+        }
+        
         components.path = [configuration.api?.path, request.path]
             .compactMap { $0 }
             .joined()
