@@ -119,7 +119,7 @@ public struct Response: Codable {
         parallelToolCalls = try container.decode(Bool.self, forKey: .parallelToolCalls)
         previousResponseId = try container.decodeIfPresent(String.self, forKey: .previousResponseId)
         reasoning = try container.decode(Reasoning.self, forKey: .reasoning)
-        store = try container.decode(Bool.self, forKey: .store)
+        store = try container.decodeIfPresent(Bool.self, forKey: .store) ?? false
         temperature = try container.decode(Double.self, forKey: .temperature)
         text = try container.decode(TextFormat.self, forKey: .text)
         toolChoice = try container.decode(String.self, forKey: .toolChoice)
