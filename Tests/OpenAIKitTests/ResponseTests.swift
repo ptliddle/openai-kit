@@ -147,4 +147,77 @@ final class ResponseTests: XCTestCase {
             XCTFail("Failed to decode Response: \(error)")
         }
     }
+
+    func testOutputItemDecodes_xAISummaryAsSummaryTextObjects() throws {
+        // xAI (and current-spec OpenAI) send summary as typed objects
+        let jsonString = """
+        {
+          "type": "reasoning",
+          "id": "rs_123",
+          "summary": [
+            {"type": "summary_text", "text": "Evaluating options."},
+            {"type": "summary_text", "text": "Python is the most readable choice."}
+          ],
+          "encrypted_content": "opaque-blob"
+        }
+        """
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let item = try decoder.decode(OutputItem.self, from: jsonString.data(using: .utf8)!)
+
+        XCTAssertEqual(item.summary?.count, 2)
+        XCTAssertEqual(item.summary?.map(\.text), ["Evaluating options.", "Python is the most readable choice."])
+        XCTAssertEqual(item.summary?.first?.type, "summary_text")
+        XCTAssertEqual(item.encryptedContent, "opaque-blob")
+    }
+
+    func testOutputItemDecodes_legacySummaryAsStringArray() throws {
+        // Legacy OpenAI sent summary as a plain string array
+        let jsonString = """
+        {
+          "type": "reasoning",
+          "id": "rs_123",
+          "summary": ["Thinking line 1", "Thinking line 2"]
+        }
+        """
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let item = try decoder.decode(OutputItem.self, from: jsonString.data(using: .utf8)!)
+
+        XCTAssertEqual(item.summary?.map(\.text), ["Thinking line 1", "Thinking line 2"])
+        XCTAssertEqual(item.summary?.first?.type, "summary_text")
+        XCTAssertNil(item.encryptedContent)
+    }
+
+    func testReasoningEncodes_canonicalSpecForm() throws {
+        // The request wire form must be summary_text objects + snake_case encrypted_content —
+        // xAI rejects bare string arrays ("expected struct SummaryText")
+        let reasoning = Reasoning(id: "rs_123",
+                                  summary: [SummaryText(text: "Thinking line 1")],
+                                  encryptedContent: "opaque-blob")
+
+        let jsonData = try JSONEncoder().encode(reasoning)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+
+        XCTAssertTrue(jsonString.contains("\"type\":\"reasoning\""))
+        XCTAssertTrue(jsonString.contains("\"type\":\"summary_text\""))
+        XCTAssertTrue(jsonString.contains("\"text\":\"Thinking line 1\""))
+        XCTAssertTrue(jsonString.contains("\"encrypted_content\":\"opaque-blob\""))
+        XCTAssertFalse(jsonString.contains("\"summary\":[\""))
+    }
+
+    func testReasoningDecodes_legacySummaryStringArray() throws {
+        let jsonString = """
+        {"type": "reasoning", "id": "rs_123", "summary": ["Thinking line 1"]}
+        """
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let reasoning = try decoder.decode(Reasoning.self, from: jsonString.data(using: .utf8)!)
+
+        XCTAssertEqual(reasoning.summary?.map(\.text), ["Thinking line 1"])
+        XCTAssertEqual(reasoning.summary?.first?.type, "summary_text")
+    }
 }

@@ -102,6 +102,8 @@ final class MessageTests: XCTestCase {
             
         case .assistant(_):
             XCTFail("incorrect role")
+        case .tool(_, _):
+            XCTFail("incorrect role")
         }
     }
     
@@ -163,6 +165,8 @@ final class MessageTests: XCTestCase {
             }
         case .assistant(_):
             XCTFail("incorrect role")
+        case .tool(_, _):
+            XCTFail("incorrect role")
         }
     }
     
@@ -210,6 +214,8 @@ final class MessageTests: XCTestCase {
             
         case .assistant(_):
             XCTFail("incorrect role")
+        case .tool(_, _):
+            XCTFail("incorrect role")
         }
     }
 
@@ -228,6 +234,8 @@ final class MessageTests: XCTestCase {
         case .user(_):
             XCTFail("incorrect role")
         case .assistant(_):
+            XCTFail("incorrect role")
+        case .tool(_, _):
             XCTFail("incorrect role")
         }
     }
@@ -273,9 +281,11 @@ final class MessageTests: XCTestCase {
             }
         case .user(_):
             XCTFail()
+        case .tool(_, _):
+            XCTFail()
         }
     }
-    
+
     func testChatRequest() throws {
         let request = try CreateChatRequest(
             model: "gpt-3.5-turbo", //.gpt3_5Turbo,
@@ -342,10 +352,7 @@ final class MessageTests: XCTestCase {
         switch choice.message {
         case .assistant(let content):
             switch content {
-            case .textAndToolCalls(_, let toolCalls, _):
-                XCTAssertEqual(toolCalls.count, 1)
-                XCTAssertEqual(toolCalls.first?.function.name, "ventus-notes-mcp_createUpdateNote")
-            case .toolCalls(let toolCalls, _):
+            case .toolCalls(let toolCalls, _, _):
                 XCTAssertEqual(toolCalls.count, 1)
                 XCTAssertEqual(toolCalls.first?.function.name, "ventus-notes-mcp_createUpdateNote")
             default:
